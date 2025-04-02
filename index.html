@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Transaction Simulator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            padding: 0;
+            margin: 0;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            margin-top: 50px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+        }
+        
+        .address-field {
+            position: relative;
+        }
+        
+        .paste-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #4299e1;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .paste-btn:hover {
+            background-color: #3182ce;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #48bb78;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .btn:hover {
+            background-color: #38a169;
+        }
+        
+        .btn:disabled {
+            background-color: #cbd5e0;
+            cursor: not-allowed;
+        }
+        
+        .warning {
+            background-color: #fed7d7;
+            border-left: 4px solid #f56565;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            color: #c53030;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .success {
+            background-color: #c6f6d5;
+            border-left: 4px solid #38a169;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            color: #2f855a;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .address-check {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .check-result {
+            font-weight: 600;
+        }
+        
+        .check-safe {
+            color: #38a169;
+        }
+        
+        .check-danger {
+            color: #e53e3e;
+        }
+        
+        .balance-info {
+            text-align: right;
+            font-size: 14px;
+            margin-top: 5px;
+            color: #718096;
+        }
+        
+        .confirmation-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .transaction-details {
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #edf2f7;
+        }
+        
+        .detail-row:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            color: #718096;
+        }
+        
+        .detail-value {
+            font-weight: 600;
+            max-width: 60%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-cancel {
+            flex: 1;
+            background-color: #e2e8f0;
+            color: #4a5568;
+        }
+        
+        .btn-confirm {
+            flex: 1;
+        }
+        
+        .crypto-icon {
+            width: 24px;
+            height: 24px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+        
+        .network-fee-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .fee-option {
+            flex: 1;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .fee-option.selected {
+            border-color: #4299e1;
+            background-color: rgba(66, 153, 225, 0.1);
+        }
+        
+        .fee-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .fee-amount {
+            font-size: 14px;
+            color: #718096;
+        }
+        
+        .fee-time {
+            font-size: 12px;
+            color: #a0aec0;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <svg width="50" height="50" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#4299e1" stroke-width="2"/>
+                <path d="M7 10.5L12 5.5L17 10.5" stroke="#4299e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 18.5V9.5" stroke="#4299e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        
+        <h1>Send Cryptocurrency</h1>
+        
+        <div id="clipboard-warning" class="warning">
+            <strong>Warning:</strong> The address you pasted does not match what you copied!
+            This could be a clipboard hijacking attack.
+        </div>
+        
+        <div id="success-message" class="success">
+            <strong>Success!</strong> Your transaction has been submitted.
+        </div>
+        
+        <form id="send-form">
+            <div class="form-group">
+                <label for="crypto">Select Cryptocurrency</label>
+                <select id="crypto">
+                    <option value="btc">Bitcoin (BTC)</option>
+                    <option value="eth">Ethereum (ETH)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="address">Recipient Address</label>
+                <div class="address-field">
+                    <input type="text" id="address" placeholder="Paste recipient address" required>
+                    <button type="button" id="paste-btn" class="paste-btn">Paste</button>
+                </div>
+                <div id="address-check" class="address-check" style="display: none;">
+                    Original copied address: <span id="original-address" class="check-result"></span>
+                    <br>
+                    Address verification: <span id="address-verification" class="check-result check-danger">DOES NOT MATCH!</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="amount">Amount</label>
+                <input type="number" id="amount" placeholder="0.00" step="0.0001" required>
+                <div class="balance-info">
+                    Available balance: <span id="available-balance">1.243 BTC</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Network Fee</label>
+                <div class="network-fee-options">
+                    <div class="fee-option" data-fee="slow">
+                        <div class="fee-name">Slow</div>
+                        <div class="fee-amount" id="slow-fee">0.0005 BTC</div>
+                        <div class="fee-time">~1 hour</div>
+                    </div>
+                    <div class="fee-option selected" data-fee="normal">
+                        <div class="fee-name">Normal</div>
+                        <div class="fee-amount" id="normal-fee">0.001 BTC</div>
+                        <div class="fee-time">~30 min</div>
+                    </div>
+                    <div class="fee-option" data-fee="fast">
+                        <div class="fee-name">Fast</div>
+                        <div class="fee-amount" id="fast-fee">0.0025 BTC</div>
+                        <div class="fee-time">~10 min</div>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="button" id="review-btn" class="btn">Review Transaction</button>
+        </form>
+    </div>
+    
+    <div id="confirmation-modal" class="confirmation-modal">
+        <div class="modal-content">
+            <div class="modal-title">Confirm Transaction</div>
+            
+            <div class="transaction-details">
+                <div class="detail-row">
+                    <div class="detail-label">Sending</div>
+                    <div class="detail-value"><span id="confirm-amount">0.1</span> <span id="confirm-symbol">BTC</span></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">To Address</div>
+                    <div class="detail-value" id="confirm-address">bc1q...</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Network Fee</div>
+                    <div class="detail-value" id="confirm-fee">0.001 BTC</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Total Amount</div>
+                    <div class="detail-value" id="confirm-total">0.101 BTC</div>
+                </div>
+            </div>
+            
+            <div class="modal-buttons">
+                <button type="button" id="cancel-btn" class="btn btn-cancel">Cancel</button>
+                <button type="button" id="confirm-btn" class="btn btn-confirm">Confirm Send</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Store original addresses
+        const originalAddresses = {
+            btc: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+            eth: "0x71C7656EC7ab88b098defB751B7401B5f6d8976F"
+        };
+        
+        // Store malicious addresses (what would be pasted after hijacking)
+        const maliciousAddresses = {
+            btc: "bc1qz9th8s00gw4dtr637xvuut9tlqcluspmkxsrlr",
+            eth: "0x912A4B35952a051c5F96C8f0ededb4b360Bd7CEC"
+        };
+        
+        // Balance info
+        const balances = {
+            btc: "1.243 BTC",
+            eth: "15.78 ETH"
+        };
+        
+        // Fee information
+        const fees = {
+            btc: {
+                slow: "0.0005 BTC",
+                normal: "0.001 BTC",
+                fast: "0.0025 BTC"
+            },
+            eth: {
+                slow: "0.002 ETH",
+                normal: "0.004 ETH",
+                fast: "0.008 ETH"
+            }
+        };
+        
+        // DOM elements
+        const cryptoSelect = document.getElementById('crypto');
+        const addressInput = document.getElementById('address');
+        const pasteBtn = document.getElementById('paste-btn');
+        const clipboardWarning = document.getElementById('clipboard-warning');
+        const addressCheck = document.getElementById('address-check');
+        const originalAddressSpan = document.getElementById('original-address');
+        const addressVerification = document.getElementById('address-verification');
+        const availableBalance = document.getElementById('available-balance');
+        const reviewBtn = document.getElementById('review-btn');
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const confirmBtn = document.getElementById('confirm-btn');
+        const successMessage = document.getElementById('success-message');
+        
+        // Fee options
+        const feeOptions = document.querySelectorAll('.fee-option');
+        const slowFee = document.getElementById('slow-fee');
+        const normalFee = document.getElementById('normal-fee');
+        const fastFee = document.getElementById('fast-fee');
+        
+        // Confirmation details
+        const confirmAmount = document.getElementById('confirm-amount');
+        const confirmSymbol = document.getElementById('confirm-symbol');
+        const confirmAddress = document.getElementById('confirm-address');
+        const confirmFee = document.getElementById('confirm-fee');
+        const confirmTotal = document.getElementById('confirm-total');
+        
+        // Selected fee (default: normal)
+        let selectedFee = 'normal';
+        
+        // Update fee display when cryptocurrency changes
+        function updateFeeDisplay() {
+            const crypto = cryptoSelect.value;
+            slowFee.textContent = fees[crypto].slow;
+            normalFee.textContent = fees[crypto].normal;
+            fastFee.textContent = fees[crypto].fast;
+        }
+        
+        // Update balance display
+        function updateBalanceDisplay() {
+            const crypto = cryptoSelect.value;
+            availableBalance.textContent = balances[crypto];
+        }
+        
+        // Initialize displays
+        updateFeeDisplay();
+        updateBalanceDisplay();
+        
+        // Update displays when cryptocurrency changes
+        cryptoSelect.addEventListener('change', function() {
+            updateFeeDisplay();
+            updateBalanceDisplay();
+            
+            // Clear address field and hide warnings
+            addressInput.value = '';
+            clipboardWarning.style.display = 'none';
+            addressCheck.style.display = 'none';
+        });
+        
+        // Handle paste button
+        pasteBtn.addEventListener('click', function() {
+            const crypto = cryptoSelect.value;
+            
+            // In real life, this would read from clipboard API
+            // For simulation, we'll use the malicious address
+            addressInput.value = maliciousAddresses[crypto];
+            
+            // Show clipboard warning and address check
+            clipboardWarning.style.display = 'block';
+            addressCheck.style.display = 'block';
+            
+            // Display the original address (what user thought they copied)
+            originalAddressSpan.textContent = originalAddresses[crypto];
+            
+            // Scroll to make warning visible
+            clipboardWarning.scrollIntoView({behavior: 'smooth'});
+        });
+        
+        // Handle fee selection
+        feeOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove selected class from all options
+                feeOptions.forEach(opt => opt.classList.remove('selected'));
+                
+                // Add selected class to clicked option
+                this.classList.add('selected');
+                
+                // Update selected fee
+                selectedFee = this.getAttribute('data-fee');
+            });
+        });
+        
+        // Handle review button
+        reviewBtn.addEventListener('click', function() {
+            const crypto = cryptoSelect.value;
+            const amount = document.getElementById('amount').value;
+            
+            if (!amount || !addressInput.value) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            // Update confirmation details
+            confirmAmount.textContent = amount;
+            confirmSymbol.textContent = crypto.toUpperCase();
+            confirmAddress.textContent = addressInput.value;
+            confirmFee.textContent = fees[crypto][selectedFee];
+            
+            // Calculate total (simple addition for demo)
+            const feeValue = parseFloat(fees[crypto][selectedFee].split(' ')[0]);
+            const totalAmount = (parseFloat(amount) + feeValue).toFixed(4);
+            confirmTotal.textContent = `${totalAmount} ${crypto.toUpperCase()}`;
+            
+            // Show confirmation modal
+            confirmationModal.style.display = 'flex';
+        });
+        
+        // Handle cancel button
+        cancelBtn.addEventListener('click', function() {
+            confirmationModal.style.display = 'none';
+        });
+        
+        // Handle confirm button
+        confirmBtn.addEventListener('click', function() {
+            // Hide confirmation modal
+            confirmationModal.style.display = 'none';
+            
+            // Show success message
+            successMessage.style.display = 'block';
+            
+            // Scroll to make success message visible
+            successMessage.scrollIntoView({behavior: 'smooth'});
+            
+            // Reset form after delay
+            setTimeout(function() {
+                document.getElementById('send-form').reset();
+                successMessage.style.display = 'none';
+                clipboardWarning.style.display = 'none';
+                addressCheck.style.display = 'none';
+                updateBalanceDisplay();
+            }, 3000);
+        });
+        
+        // Close modal if clicked outside
+        confirmationModal.addEventListener('click', function(event) {
+            if (event.target === confirmationModal) {
+                confirmationModal.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
